@@ -40,7 +40,6 @@ public class CoincidenciaController {
         return service.actualizarEstado(id, estado);
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.eliminar(id);

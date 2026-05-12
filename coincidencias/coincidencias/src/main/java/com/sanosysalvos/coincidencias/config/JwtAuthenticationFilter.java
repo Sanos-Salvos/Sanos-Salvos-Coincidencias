@@ -20,7 +20,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        // Si viene un token "Bearer ", lo damos por válido (el Gateway ya lo filtró)
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     "usuario_autenticado", null, Collections.emptyList());

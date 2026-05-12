@@ -11,11 +11,9 @@ public class KafkaConsumerConfig {
     @Autowired
     private ICoincidenciaService service;
 
-    // Escucha el tópico donde PET publica mascotas nuevas
     @KafkaListener(topics = "pet-topic", groupId = "coincidencias-group")
     public void escucharMascotas(String message) {
         System.out.println("Evento recibido desde PET: " + message);
-        // Cuando llega una mascota, disparamos la lógica de coincidencias
         service.procesarNuevaCoincidencia(1L, 1L);
     }
 }
