@@ -1,36 +1,35 @@
-﻿# 🏥 Sanos-Salvos-Coincidencias
+﻿# Sanos-Salvos-Coincidencias
 
-Motor de coincidencias mascota-avistamiento
+Motor de coincidencias entre mascotas perdidas y avistamientos
 
 ## Puerto
-\\\
+
 8084
-\\\
 
 ## Base de datos
-\\\
+
 coincidencias_db
-\\\
 
-## Endpoints
-\\\
-/api/coincidencias
-\\\
+## Endpoints disponibles
 
-## Ejecución
+GET /api/coincidencias
+POST /api/coincidencias
+GET /api/coincidencias/{id}
+PUT /api/coincidencias/{id}/estado
+DELETE /api/coincidencias/{id}
 
-### Docker
-\\\ash
+## Ejecucion con Docker
+
 docker-compose up --build
-\\\
 
-### Manual
-\\\ash
+## Ejecucion manual
+
 mvn spring-boot:run
-\\\
 
-## Stack
+## Tecnologias
+
 - Java 21
 - Spring Boot 3.2
+- Spring Security + JWT
 - PostgreSQL
 - Docker
