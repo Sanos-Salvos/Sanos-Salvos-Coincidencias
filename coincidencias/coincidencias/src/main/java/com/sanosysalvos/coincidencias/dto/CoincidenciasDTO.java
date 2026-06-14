@@ -10,5 +10,7 @@ import lombok.NoArgsConstructor;
 public class CoincidenciasDTO {
     private Long id;
     private Long petId;
+    private Long orgId;
+    private String estado;
     private String mensaje;
 }

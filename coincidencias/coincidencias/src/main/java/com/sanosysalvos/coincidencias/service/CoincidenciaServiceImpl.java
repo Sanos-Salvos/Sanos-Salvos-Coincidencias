@@ -3,23 +3,19 @@ package com.sanosysalvos.coincidencias.service;
 import com.sanosysalvos.coincidencias.factory.ICoincidenciaFactory;
 import com.sanosysalvos.coincidencias.model.Coincidencia;
 import com.sanosysalvos.coincidencias.repository.CoincidenciaRepository;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CoincidenciaServiceImpl implements ICoincidenciaService {
+    private final CoincidenciaRepository repository;
+    private final ICoincidenciaFactory factory;
 
-    @Autowired
-    private CoincidenciaRepository repository;
-
-    @Autowired
-    private ICoincidenciaFactory factory;
     @Override
-    @CircuitBreaker(name = "coincidenciasCB", fallbackMethod = "falloGeneral")
     public Coincidencia procesarNuevaCoincidencia(Long petId, Long orgId) {
         Coincidencia nueva = factory.crear(petId, orgId);
         return repository.save(nueva);
@@ -46,13 +42,5 @@ public class CoincidenciaServiceImpl implements ICoincidenciaService {
     @Override
     public void eliminar(Long id) {
         repository.deleteById(id);
-    }
-
-    // Método de resguardo (Fallback) para el Circuit Breaker
-    public Coincidencia falloGeneral(Long petId, Long orgId, Throwable t) {
-        Coincidencia fallback = new Coincidencia();
-        fallback.setId(-1L);
-        fallback.setEstado("SERVICIO_TEMPORALMENTE_CAIDO");
-        return fallback;
     }
 }
