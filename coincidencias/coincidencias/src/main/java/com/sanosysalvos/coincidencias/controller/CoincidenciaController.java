@@ -4,6 +4,7 @@ import com.sanosysalvos.coincidencias.dto.CoincidenciasDTO;
 import com.sanosysalvos.coincidencias.factory.ICoincidenciaFactory;
 import com.sanosysalvos.coincidencias.model.Coincidencia;
 import com.sanosysalvos.coincidencias.service.ICoincidenciaService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +20,9 @@ public class CoincidenciaController {
 
     private final ICoincidenciaService service;
     private final ICoincidenciaFactory factory;
+
     @PostMapping
-    public ResponseEntity<CoincidenciasDTO> crear(@RequestBody CoincidenciasDTO dto) {
+    public ResponseEntity<CoincidenciasDTO> crear(@Valid @RequestBody CoincidenciasDTO dto) {
         Coincidencia c = service.procesarNuevaCoincidencia(dto.getPetId(), dto.getOrgId());
         return ResponseEntity.ok(factory.toDTO(c));
     }
