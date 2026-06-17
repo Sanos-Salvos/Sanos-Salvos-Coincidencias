@@ -22,7 +22,7 @@ class CoincidenciasConsumerTest {
     @InjectMocks
     private CoincidenciasConsumer consumer;
 
-    private Coincidencia coincidenciaEjemplo;
+    private     Coincidencia coincidenciaEjemplo;
 
     @BeforeEach
     void setUp() {
