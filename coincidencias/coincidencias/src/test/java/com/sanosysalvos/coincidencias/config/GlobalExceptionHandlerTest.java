@@ -1,75 +1,89 @@
 package com.sanosysalvos.coincidencias.config;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.GetMapping;
 
-import java.util.Map;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-@ExtendWith(MockitoExtension.class)
 class GlobalExceptionHandlerTest {
 
-    @InjectMocks
-    private GlobalExceptionHandler handler;
+    private MockMvc mockMvc;
 
-    @Test
-    void handleRuntimeException_deberiaRetornar400() {
-        RuntimeException ex = new RuntimeException("Error de prueba");
-
-        ResponseEntity<Map<String, Object>> response = handler.handleRuntimeException(ex);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        Map<String, Object> body = response.getBody();
-        assertNotNull(body);
-        assertEquals("Error en el Microservicio de Coincidencias", body.get("error"));
-        assertEquals("Error de prueba", body.get("mensaje"));
-        assertEquals(400, body.get("status"));
+    @BeforeEach
+    void setUp() {
+        // Configuramos MockMvc aislando el controlador simulado e inyectando tu ExceptionHandler real
+        mockMvc = MockMvcBuilders.standaloneSetup(new TestController())
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     @Test
-    void handleRuntimeException_deberiaManejarMensajeNull() {
-        RuntimeException ex = new RuntimeException();
-
-        ResponseEntity<Map<String, Object>> response = handler.handleRuntimeException(ex);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        Map<String, Object> body = response.getBody();
-        assertNotNull(body);
-        assertNull(body.get("mensaje"));
+    void handleRuntimeException_deberiaRetornar400() throws Exception {
+        mockMvc.perform(get("/test/runtime-exception"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("Error en el Microservicio de Coincidencias")))
+                .andExpect(jsonPath("$.mensaje", is("Error de prueba")))
+                .andExpect(jsonPath("$.status", is(400)));
     }
 
     @Test
-    void handleGlobalException_deberiaRetornar500() {
-        Exception ex = new Exception("Error inesperado");
-
-        ResponseEntity<Map<String, Object>> response = handler.handleGlobalException(ex);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        Map<String, Object> body = response.getBody();
-        assertNotNull(body);
-        assertEquals("Error Interno del Servidor", body.get("error"));
-        assertEquals("Ocurrió un error inesperado", body.get("mensaje"));
-        assertEquals(500, body.get("status"));
+    void handleRuntimeException_deberiaManejarMensajeNull() throws Exception {
+        mockMvc.perform(get("/test/runtime-exception-null"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("Error en el Microservicio de Coincidencias")))
+                .andExpect(jsonPath("$.mensaje").value(nullValue())) // Valida el comportamiento con mensaje null
+                .andExpect(jsonPath("$.status", is(400)));
     }
 
     @Test
-    void handleRuntimeException_deberiaTenerBodyNoNull() {
-        ResponseEntity<Map<String, Object>> response = handler.handleRuntimeException(new RuntimeException("test"));
-
-        assertNotNull(response.getBody());
-        assertFalse(response.getBody().isEmpty());
+    void handleGlobalException_deberiaRetornar500() throws Exception {
+        mockMvc.perform(get("/test/exception"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error", is("Error Interno del Servidor")))
+                .andExpect(jsonPath("$.mensaje", is("Ocurrió un error inesperado")))
+                .andExpect(jsonPath("$.status", is(500)));
     }
 
     @Test
-    void handleGlobalException_deberiaTenerBodyNoNull() {
-        ResponseEntity<Map<String, Object>> response = handler.handleGlobalException(new Exception("test"));
+    void handleRuntimeException_deberiaTenerBodyNoNull() throws Exception {
+        mockMvc.perform(get("/test/runtime-exception"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$", notNullValue()))
+                .andExpect(jsonPath("$", not(anEmptyMap())));
+    }
 
-        assertNotNull(response.getBody());
-        assertFalse(response.getBody().isEmpty());
+    @Test
+    void handleGlobalException_deberiaTenerBodyNoNull() throws Exception {
+        mockMvc.perform(get("/test/exception"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$", notNullValue()))
+                .andExpect(jsonPath("$", not(anEmptyMap())));
+    }
+
+    // ========== Controlador Interno Simulado para Forzar las Excepciones ==========
+    @RestController
+    static class TestController {
+
+        @GetMapping("/test/runtime-exception")
+        public void throwRuntimeException() {
+            throw new RuntimeException("Error de prueba");
+        }
+
+        @GetMapping("/test/runtime-exception-null")
+        public void throwRuntimeExceptionNull() {
+            throw new RuntimeException();
+        }
+
+        @GetMapping("/test/exception")
+        public void throwException() throws Exception {
+            throw new Exception("Error inesperado");
+        }
     }
 }
