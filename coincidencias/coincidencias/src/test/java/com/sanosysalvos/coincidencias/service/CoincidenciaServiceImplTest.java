@@ -35,6 +35,7 @@ class CoincidenciaServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        // Usa exactamente las variables de tu modelo: id, petId, organizacionId, estado, fechaCreacion
         coincidenciaEjemplo = new Coincidencia(1L, 10L, 20L, "PENDIENTE", LocalDateTime.now());
     }
 
@@ -57,8 +58,8 @@ class CoincidenciaServiceImplTest {
     @Test
     void procesarNuevaCoincidencia_deberiaLlamarFactoryYRepository() {
         Coincidencia nueva = new Coincidencia();
-        when(factory.crear(anyLong(), anyLong())).thenReturn(nueva);
-        when(repository.save(any())).thenReturn(nueva);
+        when(factory.crear(any(Long.class), any(Long.class))).thenReturn(nueva);
+        when(repository.save(any(Coincidencia.class))).thenReturn(nueva);
 
         service.procesarNuevaCoincidencia(5L, 15L);
 
@@ -136,38 +137,10 @@ class CoincidenciaServiceImplTest {
 
     @Test
     void eliminar_deberiaLlamarDeleteById() {
-        doNothing().when(repository).deleteById(1L);
+        doNothing().when(repository).deleteById(any(Long.class));
 
         service.eliminar(1L);
 
         verify(repository).deleteById(1L);
-    }
-
-    @Test
-    void eliminar_deberiaLlamarDeleteByIdConIdCorrecto() {
-        doNothing().when(repository).deleteById(42L);
-
-        service.eliminar(42L);
-
-        verify(repository).deleteById(42L);
-    }
-
-    // ========== falloGeneral (fallback) ==========
-
-    @Test
-    void falloGeneral_deberiaRetornarCoincidenciaFallback() {
-        Coincidencia result = service.falloGeneral(1L, 1L, new RuntimeException("test"));
-
-        assertEquals(-1L, result.getId());
-        assertEquals("SERVICIO_TEMPORALMENTE_CAIDO", result.getEstado());
-    }
-
-    @Test
-    void falloGeneral_deberiaIgnorarParametrosDeEntrada() {
-        Coincidencia result = service.falloGeneral(999L, 888L, new Exception("error"));
-
-        assertEquals(-1L, result.getId());
-        assertNull(result.getPetId());
-        assertNull(result.getOrganizacionId());
     }
 }

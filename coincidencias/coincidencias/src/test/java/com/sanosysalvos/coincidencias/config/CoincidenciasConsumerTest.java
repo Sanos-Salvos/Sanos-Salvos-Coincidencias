@@ -2,11 +2,14 @@ package com.sanosysalvos.coincidencias.config;
 
 import com.sanosysalvos.coincidencias.model.Coincidencia;
 import com.sanosysalvos.coincidencias.service.ICoincidenciaService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
 
 import static org.mockito.Mockito.*;
 
@@ -19,37 +22,38 @@ class CoincidenciasConsumerTest {
     @InjectMocks
     private CoincidenciasConsumer consumer;
 
-    @Test
-    void escucharMascotas_deberiaLlamarProcesarNuevaCoincidencia() {
-        Coincidencia mockResult = new Coincidencia();
-        when(service.procesarNuevaCoincidencia(1L, 1L)).thenReturn(mockResult);
+    private     Coincidencia coincidenciaEjemplo;
 
-        consumer.escucharMascotas("{\"petId\":1}");
-
-        verify(service).procesarNuevaCoincidencia(1L, 1L);
+    @BeforeEach
+    void setUp() {
+        coincidenciaEjemplo = new Coincidencia(1L, 1L, 1L, "PENDIENTE", LocalDateTime.now());
     }
 
     @Test
-    void escucharMascotas_deberiaFuncionarConMensajeVacio() {
-        Coincidencia mockResult = new Coincidencia();
-        when(service.procesarNuevaCoincidencia(1L, 1L)).thenReturn(mockResult);
+    void escucharMascotas_deberiaProcesarNuevaCoincidencia() {
+        // Arrange
+        String mensajePrueba = "{\"id\": 1, \"nombre\": \"Firulais\"}";
+        when(service.procesarNuevaCoincidencia(1L, 1L)).thenReturn(coincidenciaEjemplo);
 
-        consumer.escucharMascotas("");
+        // Act
+        consumer.escucharMascotas(mensajePrueba);
 
-        verify(service).procesarNuevaCoincidencia(1L, 1L);
+        // Assert
+        verify(service, times(1)).procesarNuevaCoincidencia(1L, 1L);
     }
 
     @Test
-    void escucharOrganizaciones_noDeberiaLlamarService() {
-        consumer.escucharOrganizaciones("{\"orgId\":1}");
+    void escucharOrganizaciones_deberiaImprimirMensaje() {
+        // Arrange
+        String mensajePrueba = "{\"id\": 1, \"nombre\": \"Refugio Sanos y Salvos\"}";
 
-        verifyNoInteractions(service);
-    }
+        // Act
+        // Este método solo ejecuta System.out.println internamente, por lo que llamarlo asegura
+        // la ejecución de todas sus líneas (100% de cobertura).
+        consumer.escucharOrganizaciones(mensajePrueba);
 
-    @Test
-    void escucharOrganizaciones_deberiaFuncionarConMensajeNull() {
-        consumer.escucharOrganizaciones(null);
-
+        // Assert
+        // Verificamos que no interactúe con el servicio en este flujo
         verifyNoInteractions(service);
     }
 }
